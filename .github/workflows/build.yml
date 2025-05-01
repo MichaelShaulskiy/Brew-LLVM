@@ -1,0 +1,43 @@
+name: Build LLVM Bottle
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Homebrew
+      uses: homebrew/actions/setup-brew@v2
+
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: brew bundle --verbose --file=- <<EOF
+        brew "cmake"
+        brew "ninja"
+        brew "swig"
+        brew "python@3.13"
+        brew "xz"
+        brew "z3"
+        brew "zstd"
+        brew "pkgconf"
+        brew "binutils"
+        brew "elfutils"
+        EOF
+
+    - name: Build LLVM
+      run: brew install --build-bottle ./Formula/l/llvm.rb
+
+    - name: Upload bottle
+      uses: actions/upload-artifact@v2
+      with:
+        name: llvm-bottle
+        path: $(brew --cache)/llvm--*.bottle.tar.gz
